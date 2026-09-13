@@ -13,13 +13,22 @@ jobs:
   warmup:
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    strategy:
+      fail-fast: false
+      matrix:
+        account: [acc1, acc2]
+        include:
+          - account: acc1
+            token_secret: CLAUDE_OAUTH_TOKEN_ACC1
+          - account: acc2
+            token_secret: CLAUDE_OAUTH_TOKEN_ACC2
     steps:
-      - name: Validate configuration
+      - name: Validate configuration (${{ matrix.account }})
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets[matrix.token_secret] }}
         run: |
           if [ -z "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
-            echo "CLAUDE_OAUTH_TOKEN secret is not set."
+            echo "${{ matrix.token_secret }} secret is not set."
             echo "Add it in Settings > Secrets and variables > Actions."
             exit 1
           fi
@@ -27,9 +36,9 @@ jobs:
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
 
-      - name: Ping Claude to anchor 5-hour window
+      - name: Ping Claude to anchor 5-hour window (${{ matrix.account }})
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets[matrix.token_secret] }}
         run: |
           mkdir -p ~/.claude
           echo '{"hasCompletedOnboarding":true}' > ~/.claude.json
@@ -41,22 +50,22 @@ jobs:
           cat "$output_file"
 
           if [ $status -eq 0 ]; then
-            echo "Claude warmup request succeeded."
+            echo "Claude warmup request succeeded for ${{ matrix.account }}."
             echo "✓ Warmup complete"
             exit 0
           fi
 
           if grep -Eiq "expired|unauthorized|invalid token|authentication|auth failed|login required|not logged in" "$output_file"; then
-            echo "Claude token appears invalid or expired."
-            echo "Run 'claude setup-token' locally and update the CLAUDE_OAUTH_TOKEN GitHub secret."
+            echo "Token for ${{ matrix.account }} appears invalid or expired."
+            echo "Run 'claude setup-token' locally and update the ${{ matrix.token_secret }} GitHub secret."
             exit 1
           fi
 
           if grep -qi "rate limit" "$output_file"; then
-            echo "Claude reported a rate limit; treating as warmup success."
+            echo "Claude reported a rate limit for ${{ matrix.account }}; treating as warmup success."
             echo "✓ Warmup complete"
             exit 0
           fi
 
-          echo "Claude warmup failed with an unexpected error."
+          echo "Claude warmup failed for ${{ matrix.account }} with an unexpected error."
           exit $status
