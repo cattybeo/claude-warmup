@@ -61,7 +61,7 @@ jobs:
             exit 1
           fi
 
-          if grep -qi "rate limit" "$output_file"; then
+          if grep -Eqi "rate limit|session limit|hit your.*limit|usage limit" "$output_file"; then
             echo "Claude reported a rate limit for ${{ matrix.account }}; treating as warmup success."
             echo "✓ Warmup complete"
             exit 0
