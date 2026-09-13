@@ -2,7 +2,7 @@ name: Claude Code Warmup
 
 on:
   schedule:
-    - cron: '0 17,22,3,8,13 * * *'   # moi 5h theo gio Ha Noi (00h,05h,10h,15h,20h GMT+7), ca 7 ngay
+    - cron: '0 23,1,4,9,11 * * *'   # 6h,8h,11h,16h,18h gio Ha Noi (GMT+7), ca 7 ngay
   workflow_dispatch: {}
 
 concurrency:
