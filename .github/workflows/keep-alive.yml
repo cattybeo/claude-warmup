@@ -1,0 +1,23 @@
+name: Keep Repo Alive
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'   # ngay 1 hang thang, 3:00 UTC (10:00 sang Ha Noi)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Empty commit to keep scheduled workflows active
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: keep-alive $(date -u +%Y-%m-%d)"
+          git push
