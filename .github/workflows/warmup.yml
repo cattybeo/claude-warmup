@@ -16,12 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        account: [acc1, acc2, acc3]
+        account: [acc1, acc3]
         include:
           - account: acc1
             token_secret: CLAUDE_OAUTH_TOKEN_ACC1
-          - account: acc2
-            token_secret: CLAUDE_OAUTH_TOKEN_ACC2
           - account: acc3
             token_secret: CLAUDE_OAUTH_TOKEN_ACC3
     steps:
